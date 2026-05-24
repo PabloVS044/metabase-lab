@@ -1,0 +1,61 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: wc_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - ./data:/var/lib/mysql-files
+    command: >
+      --local-infile=1
+      --secure-file-priv=/var/lib/mysql-files
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wc_net
+
+  postgres:
+    image: postgres:16
+    container_name: wc_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ./data:/tmp/data
+    networks:
+      - wc_net
+
+  metabase:
+    image: metabase/metabase:v0.49.0
+    platform: linux/amd64
+    container_name: wc_metabase
+    ports:
+      - "${METABASE_PORT}:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+    environment:
+      MB_DB_TYPE: h2
+      JAVA_TIMEZONE: ${JAVA_TIMEZONE}
+    networks:
+      - wc_net
+
+networks:
+  wc_net:
+    driver: bridge

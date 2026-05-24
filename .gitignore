@@ -1,0 +1,11 @@
+# Data
+data/*.csv
+
+# Environment — copy .env.example and fill in your values
+.env
+
+# Docker Compose — copy docker-compose.yml.example and adjust ports if needed
+docker-compose.yml
+
+# macOS
+.DS_Store
