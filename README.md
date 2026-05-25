@@ -56,7 +56,10 @@ metabase-lab/
 │   └── DATA (1).sql               # DML: Carga de datos de prueba
 ├── postgres-init/                  # Carpeta vacía (Docker ejecuta SQL de data/)
 ├── queries/
-│   └── query_de_prueba.sql        # Query de prueba para validar datos
+│   ├── indicador(1).sql           # Rentabilidad por Producto/Categoría por tienda y región
+│   ├── indicador(2).sql           # Análisis comparativo Descuentos vs Devoluciones por tienda y región
+│   ├── indicador(3).sql           # Margen de Ganancia por Tienda y Región
+│   └── query_de_prueba.sql        # Query de prueba (obsoleta)
 ├── metabase-data/                 # Volumen persistente (generado automáticamente)
 └── README.md                       # Este archivo
 ```
@@ -83,11 +86,37 @@ La conexión a la base de datos RetailMax se configura automáticamente:
 
 ---
 
-## Query de Prueba
+## Indicadores Financieros
 
-**Archivo:** `queries/query_de_prueba.sql`
+El proyecto incluye 3 indicadores SQL para análisis financiero profundo del área 3 (Finanzas), cada uno segmentado por tienda y región:
 
-Query de validación para verificar que los datos se han cargado correctamente en la base de datos RetailMax.
+### Indicador 1: Rentabilidad por Producto/Categoría
+**Archivo:** `queries/indicador(1).sql`
+
+Análisis de rentabilidad por producto y categoría ofrecidos en cada tienda por región.
+- **Columnas:** tienda, ciudad, región, categoría, producto, márgenes unitarios y porcentuales, unidades vendidas, ingresos, costos, ganancia neta
+- **Uso:** Identificar productos/categorías más rentables por ubicación
+- **Segmentación:** Por tienda y región
+
+### Indicador 2: Descuentos vs Devoluciones
+**Archivo:** `queries/indicador(2).sql`
+
+Análisis comparativo del impacto financiero entre descuentos promocionales y devoluciones/reembolsos.
+- **Columnas:** tienda, ciudad, región, ingresos, montos de descuentos/reembolsos, porcentajes, pérdida total, factor principal
+- **Uso:** Priorizar acciones de recuperación de margen (descuentos vs devoluciones)
+- **Segmentación:** Por tienda y región
+
+### Indicador 3: Margen de Ganancia por Tienda
+**Archivo:** `queries/indicador(3).sql`
+
+Comparativa de rentabilidad por tienda con análisis de margen bruto vs neto.
+- **Columnas:** tienda, ciudad, región, total pedidos, unidades vendidas, ingresos, costos, márgenes bruto/neto y porcentuales, reembolsos
+- **Uso:** Comparar desempeño de tiendas y evaluar impacto de devoluciones
+- **Segmentación:** Por tienda y región
+
+---
+
+## Query de Prueba (Obsoleta)
 
 ---
 

@@ -1,18 +1,4 @@
--- ========================================================================
--- INDICADOR 1: INGRESOS TOTALES POR TIENDA Y CANAL
--- ========================================================================
--- Descripción: Muestra el total de ingresos (monto de pedidos) 
--- segmentado por tienda y canal de venta (tienda física vs online)
--- 
--- Negocio: KPI crítico para evaluar el desempeño de cada ubicación
--- física y comparar canales de venta
--- 
--- Importancia: Permite identificar qué tiendas generan más ingresos
--- y si el canal online crece vs tiendas físicas
--- 
--- Visualización: Tabla con subtotales o gráfico de barras agrupadas
--- ========================================================================
-
+-- Este lo pueden borrar si quieren, solo era para probar el metabase.
 SELECT 
     t.nombre AS tienda,
     t.ciudad AS ciudad,

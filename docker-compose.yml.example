@@ -1,61 +1,54 @@
 services:
 
-  mysql:
-    image: mysql:8.0
-    container_name: wc_mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "${MYSQL_PORT}:3306"
-    volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d
-      - ./data:/var/lib/mysql-files
-    command: >
-      --local-infile=1
-      --secure-file-priv=/var/lib/mysql-files
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - wc_net
-
-  postgres:
+  retailmax_postgres:
     image: postgres:16
-    container_name: wc_postgres
+    container_name: retailmax_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGTZ: ${JAVA_TIMEZONE}
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - ./postgres-init:/docker-entrypoint-initdb.d
-      - ./data:/tmp/data
+      - ./data/DDL (1).sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./data/DATA (1).sql:/docker-entrypoint-initdb.d/02_load.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - wc_net
+      - retailmax_net
 
-  metabase:
+  retailmax_metabase:
     image: metabase/metabase:v0.49.0
     platform: linux/amd64
-    container_name: wc_metabase
+    container_name: retailmax_metabase
     ports:
       - "${METABASE_PORT}:3000"
     depends_on:
-      mysql:
+      retailmax_postgres:
         condition: service_healthy
-      postgres:
-        condition: service_started
     environment:
       MB_DB_TYPE: h2
+      MB_DB_FILE: /metabase/data/metabase
       JAVA_TIMEZONE: ${JAVA_TIMEZONE}
+    volumes:
+      - metabase_data:/metabase/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
     networks:
-      - wc_net
+      - retailmax_net
+
+volumes:
+  postgres_data:
+  metabase_data:
 
 networks:
-  wc_net:
+  retailmax_net:
     driver: bridge
