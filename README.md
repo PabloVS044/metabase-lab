@@ -4,6 +4,8 @@
 
 Dashboard analítico empresarial para RetailMax, una cadena de tiendas de productos de consumo. Implementación de Metabase sobre Docker con PostgreSQL, incluyendo indicadores SQL y usuario de calificación preconfigurado.
 
+**Link del video:** [https://youtu.be/c2_jDC92wt0](https://youtu.be/c2_jDC92wt0)
+
 ---
 
 ## Requisitos
