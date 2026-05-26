@@ -1,0 +1,54 @@
+services:
+
+  retailmax_postgres:
+    image: postgres:16
+    container_name: retailmax_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGTZ: ${JAVA_TIMEZONE}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./data/DDL (1).sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./data/DATA (1).sql:/docker-entrypoint-initdb.d/02_load.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - retailmax_net
+
+  retailmax_metabase:
+    image: metabase/metabase:v0.49.0
+    platform: linux/amd64
+    container_name: retailmax_metabase
+    ports:
+      - "${METABASE_PORT}:3000"
+    depends_on:
+      retailmax_postgres:
+        condition: service_healthy
+    environment:
+      MB_DB_TYPE: h2
+      MB_DB_FILE: /metabase/data/metabase
+      JAVA_TIMEZONE: ${JAVA_TIMEZONE}
+    volumes:
+      - ./metabase-data:/metabase/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - retailmax_net
+
+volumes:
+  postgres_data:
+  metabase_data:
+
+networks:
+  retailmax_net:
+    driver: bridge
