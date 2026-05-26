@@ -1,24 +1,23 @@
 services:
-
   retailmax_postgres:
     image: postgres:16
     container_name: retailmax_postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGTZ: ${JAVA_TIMEZONE}
+      POSTGRES_DB: ${POSTGRES_DB:-retailmax_db}
+      POSTGRES_USER: ${POSTGRES_USER:-retailmax}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retailmax123}
+      PGTZ: ${JAVA_TIMEZONE:-America/Guatemala}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - ./data/DDL (1).sql:/docker-entrypoint-initdb.d/01_schema.sql
-      - ./data/DATA (1).sql:/docker-entrypoint-initdb.d/02_load.sql
+      - ./data/DDL (1).sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./data/DATA (1).sql:/docker-entrypoint-initdb.d/02_load.sql:ro
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-retailmax} -d ${POSTGRES_DB:-retailmax_db}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - retailmax_net
 
@@ -27,21 +26,47 @@ services:
     platform: linux/amd64
     container_name: retailmax_metabase
     ports:
-      - "${METABASE_PORT}:3000"
+      - "${METABASE_PORT:-3000}:3000"
     depends_on:
       retailmax_postgres:
         condition: service_healthy
     environment:
       MB_DB_TYPE: h2
       MB_DB_FILE: /metabase/data/metabase
-      JAVA_TIMEZONE: ${JAVA_TIMEZONE}
+      JAVA_TIMEZONE: ${JAVA_TIMEZONE:-America/Guatemala}
     volumes:
       - ./metabase-data:/metabase/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+    networks:
+      - retailmax_net
+
+  retailmax_metabase_init:
+    build:
+      context: ./metabase-init
+    container_name: retailmax_metabase_init
+    depends_on:
+      retailmax_metabase:
+        condition: service_healthy
+    environment:
+      METABASE_URL: http://retailmax_metabase:3000
+      MB_ADMIN_EMAIL: calificar@uvg.edu.gt
+      MB_ADMIN_PASSWORD: secret123+
+      POSTGRES_HOST: retailmax_postgres
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-retailmax_db}
+      POSTGRES_USER: ${POSTGRES_USER:-retailmax}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retailmax123}
+      QUERIES_PATH: /queries
+      DASHBOARD_NAME: RetailMax - Finanzas
+      TAB_ONE_NAME: Rentabilidad Comercial
+      TAB_TWO_NAME: Control Financiero
+    volumes:
+      - ./queries:/queries:ro
+    restart: "no"
     networks:
       - retailmax_net
 
