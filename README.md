@@ -39,9 +39,11 @@ Esto iniciará:
 
 **URL:** [http://localhost:3000](http://localhost:3000)
 
-**Credenciales de Calificación:**
+**Login automático preconfigurado:**
 - Email: `calificar@uvg.edu.gt`
 - Contraseña: `secret123+`
+
+*Nota: Si accedes por primera vez y Metabase pide setup, sigue las instrucciones de la sección "Configuración de Metabase".*
 
 ---
 
@@ -54,13 +56,13 @@ metabase-lab/
 ├── data/
 │   ├── DDL (1).sql                # DDL: Estructura de RetailMax
 │   └── DATA (1).sql               # DML: Carga de datos de prueba
+├── metabase_data/                 # Configuración Metabase preestablecida
 ├── postgres-init/                  # Carpeta vacía (Docker ejecuta SQL de data/)
 ├── queries/
 │   ├── indicador(1).sql           # Rentabilidad por Producto/Categoría por tienda y región
 │   ├── indicador(2).sql           # Análisis comparativo Descuentos vs Devoluciones por tienda y región
 │   ├── indicador(3).sql           # Margen de Ganancia por Tienda y Región
 │   └── query_de_prueba.sql        # Query de prueba (obsoleta)
-├── metabase-data/                 # Volumen persistente (generado automáticamente)
 └── README.md                       # Este archivo
 ```
 
@@ -68,15 +70,38 @@ metabase-lab/
 
 ## Configuración de Metabase
 
-### Usuario Administrativo (Preconfigurado)
+### Configuración Preestablecida (Primera Vez)
 
-El usuario `calificar@uvg.edu.gt` se configura automáticamente con acceso administrativo y contraseña `secret123+`.
+La carpeta `metabase_data/` contiene toda la configuración, usuarios, dashboards e indicadores ya establecidos. 
+
+**Para auxiliares/calificadores:** Solo clona el repo y ejecuta `docker compose up -d`. El login será automático.
+
+### Crear Nuevo Setup Manual (Si aplica)
+
+Si necesitas crear un nuevo setup desde cero:
+
+1. **Accede a http://localhost:3000**
+2. **Formulario de setup** (solo aparece la primera vez):
+   - Idioma: Spanish
+   - Nombre: RetailMax
+   - Email: `calificar@uvg.edu.gt`
+   - Contraseña: `secret123+`
+3. **Conexión a PostgreSQL:**
+   - Host: `retailmax_postgres`
+   - Puerto: `5432`
+   - Base de datos: `retailmax_db`
+   - Usuario: `retailmax`
+   - Contraseña: `retailmax123`
+4. **Crear indicadores** y guardar como preguntas/dashboards
+5. **Sincronizar** la configuración:
+   ```bash
+   docker compose down
+   git add metabase_data/
+   git commit -m "Update Metabase configuration"
+   git push
+   ```
 
 ### Conexión a PostgreSQL
-
-La conexión a la base de datos RetailMax se configura automáticamente:
-
-| Parámetro | Valor |
 |-----------|-------|
 | **Host** | `retailmax_postgres` |
 | **Puerto** | `5432` |
@@ -103,7 +128,7 @@ Análisis de rentabilidad por producto y categoría ofrecidos en cada tienda por
 
 Análisis comparativo del impacto financiero entre descuentos promocionales y devoluciones/reembolsos.
 - **Columnas:** tienda, ciudad, región, ingresos, montos de descuentos/reembolsos, porcentajes, pérdida total, factor principal
-- **Uso:** Priorizar acciones de recuperación de margen (descuentos vs devoluciones)
+- **Uso:** Decidir en que problematica enfocarse primero acorde a su efecto negativo en el margen de las ganancias(descuentos vs devoluciones)
 - **Segmentación:** Por tienda y región
 
 ### Indicador 3: Margen de Ganancia por Tienda
@@ -121,6 +146,13 @@ Comparativa de rentabilidad por tienda con análisis de margen bruto vs neto.
 ---
 
 ## Solución de Problemas
+
+### Metabase pide setup (primera vez)
+
+Si Metabase pide configuración inicial:
+1. Sigue los pasos de "Crear Nuevo Setup Manual" arriba
+2. Una vez completado, sincroniza con Git
+3. La próxima vez que se levante, saltará el setup
 
 ### Metabase no responde
 
@@ -192,5 +224,3 @@ Para reportar problemas o preguntas sobre la configuración:
 3. Confirma que los puertos 5432 y 3000 no estén en uso por otros servicios
 
 ---
-
-**Última actualización:** Mayo 2026
